@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Magilu App
 
-## Getting Started
+Shoe inventory management web app built with Next.js, Prisma, and SQLite.
 
-First, run the development server:
+---
 
+## Option 1 — Docker (recommended)
+
+**Requirements:** [Docker](https://www.docker.com/get-started) + Docker Compose
+
+**1. Clone the repo**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/the-eagle-eye/magilu-app.git
+cd magilu-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**2. Create a `.env` file** in the root:
+```env
+NEXTAUTH_SECRET=your_random_secret_here
+NEXTAUTH_URL=http://localhost:3000
+ADMIN_EMAIL=admin@magilu.com
+ADMIN_PASSWORD_HASH=your_bcrypt_hash_here
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> To generate `NEXTAUTH_SECRET`: `openssl rand -base64 32`
+> To generate `ADMIN_PASSWORD_HASH`: use [bcrypt-generator.com](https://bcrypt-generator.com) or `htpasswd -bnBC 10 "" yourpassword | tr -d ':\n'`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**3. Start the app**
+```bash
+docker compose up -d
+```
 
-## Learn More
+App runs at [http://localhost:3000](http://localhost:3000). Data persists in `./data/`.
 
-To learn more about Next.js, take a look at the following resources:
+**Stop the app**
+```bash
+docker compose down
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Option 2 — Local Development
 
-## Deploy on Vercel
+**Requirements:** [Node.js 20+](https://nodejs.org)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**1. Clone & install dependencies**
+```bash
+git clone https://github.com/the-eagle-eye/magilu-app.git
+cd magilu-app
+npm install
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**2. Create a `.env.local`** file in the root:
+```env
+DATABASE_URL=file:./prisma/data/dev.db
+NEXTAUTH_SECRET=your_random_secret_here
+NEXTAUTH_URL=http://localhost:3000
+ADMIN_EMAIL=admin@magilu.com
+ADMIN_PASSWORD_HASH=your_bcrypt_hash_here
+```
+
+**3. Run database migrations**
+```bash
+npx prisma migrate deploy
+```
+
+**4. Start the development server**
+```bash
+npm run dev
+```
+
+App runs at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Tech Stack
+
+- [Next.js 16](https://nextjs.org) — React framework
+- [Prisma](https://www.prisma.io) — ORM + SQLite database
+- [NextAuth.js](https://next-auth.js.org) — Authentication
+- [Tailwind CSS](https://tailwindcss.com) — Styling
+- [React PDF](https://react-pdf.org) — PDF generation
