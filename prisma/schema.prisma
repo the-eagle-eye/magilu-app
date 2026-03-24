@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Shoe {
+  id          String      @id @default(cuid())
+  modelo      String
+  marca       String
+  eurSize     Float
+  usSize      Float?
+  ukSize      Float?
+  color       String?
+  tipo        String      @default("Zapatilla")
+  genero      String      @default("hombre")
+  precio      Float?
+  precioVenta Float?
+  estado      String      @default("disponible")
+  notas       String?
+  sku         String?
+  fotos       ShoePhoto[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([marca])
+  @@index([eurSize])
+  @@index([estado])
+}
+
+model ShoePhoto {
+  id          String   @id @default(cuid())
+  shoeId      String
+  shoe        Shoe     @relation(fields: [shoeId], references: [id], onDelete: Cascade)
+  path        String
+  tipo        String   @default("zapato")
+  esPrincipal Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+}

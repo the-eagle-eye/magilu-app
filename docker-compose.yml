@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/app/prisma/data/prod.db"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET}"
+      NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@magilu.com}"
+      ADMIN_PASSWORD_HASH: "${ADMIN_PASSWORD_HASH}"
+    volumes:
+      - ./data/db:/app/prisma/data
+      - ./data/uploads:/app/public/uploads
+    restart: unless-stopped
