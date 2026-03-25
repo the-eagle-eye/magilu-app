@@ -6,7 +6,7 @@ mkdir -p /app/prisma/data
 
 # Run migrations
 echo "Running database migrations..."
-npx prisma migrate deploy
+node_modules/.bin/prisma migrate deploy
 
 # Seed if DB is empty
 SHOE_COUNT=$(node -e "
