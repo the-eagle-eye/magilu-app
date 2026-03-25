@@ -5,7 +5,8 @@ import fs from 'fs'
 
 const BRANDS_DIR = path.join(process.cwd(), 'brands')
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const formData = await req.formData()
   const nombre = (formData.get('nombre') as string)?.trim()
   const file = formData.get('logo') as File | null
@@ -14,7 +15,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Nombre requerido' }, { status: 400 })
   }
 
-  const existing = await prisma.marca.findUnique({ where: { id: params.id } })
+  const existing = await prisma.marca.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
 
   let logoPath = existing.logoPath
@@ -42,14 +43,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 
   const marca = await prisma.marca.update({
-    where: { id: params.id },
+    where: { id },
     data: { nombre, logoPath },
   })
   return NextResponse.json(marca)
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const existing = await prisma.marca.findUnique({ where: { id: params.id } })
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const existing = await prisma.marca.findUnique({ where: { id } })
   if (!existing) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
 
   if (existing.logoPath) {
@@ -57,6 +59,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     if (fs.existsSync(abs)) fs.unlinkSync(abs)
   }
 
-  await prisma.marca.delete({ where: { id: params.id } })
+  await prisma.marca.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }
