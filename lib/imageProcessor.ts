@@ -1,51 +1,40 @@
 import sharp from 'sharp'
-import path from 'path'
-import fs from 'fs'
 
 /**
- * Procesa una imagen de zapato para el catálogo PDF:
- * 1. Elimina el fondo (si @imgly/background-removal-node está disponible)
- * 2. Mejora brillo, contraste y nitidez con sharp
- * 3. Devuelve JPEG base64 listo para embeber en PDF
+ * Resize a shoe photo to the given dimensions using cover fit (fills the box, no white bars).
  */
-export async function processShoeImage(filePath: string): Promise<string | null> {
+export async function processShoeImage(
+  filePath: string,
+  width = 700,
+  height = 700,
+): Promise<string | null> {
   try {
-    let inputBuffer = fs.readFileSync(filePath)
+    // Reject files smaller than 5 KB — likely corrupt or wrong file
+    const { size } = await import('fs').then(fs => fs.promises.stat(filePath))
+    if (size < 5000) return null
 
-    // --- Paso 1: Eliminación de fondo ---
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { removeBackground } = require('@imgly/background-removal-node')
-      const blob: Blob = await removeBackground(filePath)
-      const arrayBuffer = await blob.arrayBuffer()
-      inputBuffer = Buffer.from(arrayBuffer)
-    } catch {
-      // Si falla (sin modelo descargado, sin memoria, etc.) continúa sin eliminar fondo
-    }
-
-    // --- Paso 2: Mejoras con sharp ---
-    const jpeg = await sharp(inputBuffer)
-      // Recortar whitespace / fondo uniforme si quedó
-      .trim({ threshold: 25 })
-      // Normalizar niveles (auto-contraste)
-      .normalize()
-      // Mejorar vibrance / saturación suavemente
-      .modulate({ saturation: 1.15, brightness: 1.02 })
-      // Nitidez: sigma bajo = sutil pero efectivo
-      .sharpen({ sigma: 0.8, m1: 0.5, m2: 0.5 })
-      // Ajuste de gamma para que los oscuros no se pierdan
-      .gamma(1.1)
-      // Fondo blanco para transparencias PNG (si se eliminó el fondo)
-      .flatten({ background: { r: 255, g: 255, b: 255 } })
-      // Encuadrar con padding en fondo blanco
-      .resize(500, 500, {
-        fit: 'contain',
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
+    const buffer = await sharp(filePath)
+      .resize(width, height, { fit: 'cover' })
       .jpeg({ quality: 90, mozjpeg: true })
       .toBuffer()
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`
+  } catch {
+    return null
+  }
+}
 
-    return `data:image/jpeg;base64,${jpeg.toString('base64')}`
+/**
+ * Resize a brand logo image (contain fit so the full logo is visible on white).
+ */
+export async function processEtiquetaImage(filePath: string): Promise<string | null> {
+  try {
+    const buffer = await sharp(filePath)
+      .trim({ threshold: 30 })
+      .resize(400, 200, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
+      .jpeg({ quality: 88, mozjpeg: true })
+      .toBuffer()
+    return `data:image/jpeg;base64,${buffer.toString('base64')}`
   } catch {
     return null
   }

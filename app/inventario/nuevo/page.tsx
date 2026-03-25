@@ -1,13 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { getConvertedSizes } from '@/lib/sizeConversion'
-
-const TIPOS = ['Zapatilla', 'Zapato', 'Bota', 'Sandalia', 'Oxford', 'Mocasín', 'Deportivo']
-const MARCAS = ['ALDO', 'Clarks', 'Adidas', 'Beverly Hills Polo Club', 'Christian Lau', 'Otra']
 
 export default function NuevoZapatoPage() {
   const router = useRouter()
@@ -15,6 +12,21 @@ export default function NuevoZapatoPage() {
   const [saved, setSaved] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [extractError, setExtractError] = useState<string | null>(null)
+  const [marcas, setMarcas] = useState<string[]>([])
+  const [tipos, setTipos] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/mantenimiento/marcas').then(r => r.json()).then((data: { nombre: string }[]) => {
+      const nombres = data.map((m) => m.nombre)
+      setMarcas(nombres)
+      setForm(f => ({ ...f, marca: f.marca || nombres[0] || '' }))
+    })
+    fetch('/api/mantenimiento/tipos').then(r => r.json()).then((data: { nombre: string }[]) => {
+      const nombres = data.map((t) => t.nombre)
+      setTipos(nombres)
+      setForm(f => ({ ...f, tipo: f.tipo || nombres[0] || '' }))
+    })
+  }, [])
 
   // Fotos del zapato (van al catálogo)
   const [previews, setPreviews] = useState<string[]>([])
@@ -26,8 +38,7 @@ export default function NuevoZapatoPage() {
 
   const [form, setForm] = useState({
     modelo: '',
-    marca: 'ALDO',
-    marcaCustom: '',
+    marca: '',
     eurSize: '',
     usSize: '',
     ukSize: '',
@@ -109,8 +120,7 @@ export default function NuevoZapatoPage() {
         return {
           ...f,
           modelo:      data.modelo   ?? f.modelo,
-          marca:       MARCAS.includes(data.marca) ? data.marca : (data.marca ? 'Otra' : f.marca),
-          marcaCustom: !MARCAS.includes(data.marca) && data.marca ? data.marca : f.marcaCustom,
+          marca:       marcas.find(m => m.toLowerCase() === data.marca?.toLowerCase()) ?? f.marca,
           eurSize:     eur != null   ? String(eur) : f.eurSize,
           usSize:      data.usSize   ? String(data.usSize)  : converted ? String(converted.us)  : f.usSize,
           ukSize:      data.ukSize   ? String(data.ukSize)  : converted ? String(converted.uk)  : f.ukSize,
@@ -132,7 +142,7 @@ export default function NuevoZapatoPage() {
 
     const fd = new FormData()
     fd.append('modelo', form.modelo)
-    fd.append('marca', form.marca === 'Otra' ? form.marcaCustom : form.marca)
+    fd.append('marca', form.marca)
     fd.append('eurSize', form.eurSize)
     if (form.usSize) fd.append('usSize', form.usSize)
     if (form.ukSize) fd.append('ukSize', form.ukSize)
@@ -290,22 +300,9 @@ export default function NuevoZapatoPage() {
                 onChange={e => setForm(f => ({ ...f, marca: e.target.value }))}
                 className={field}
               >
-                {MARCAS.map(m => <option key={m} value={m}>{m}</option>)}
+                {marcas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-
-            {form.marca === 'Otra' && (
-              <div>
-                <label className={label}>Nombre de marca</label>
-                <input
-                  type="text"
-                  placeholder="Escribe la marca"
-                  value={form.marcaCustom}
-                  onChange={e => setForm(f => ({ ...f, marcaCustom: e.target.value }))}
-                  className={field}
-                />
-              </div>
-            )}
 
             <div>
               <label className={label}>Género *</label>
@@ -380,7 +377,7 @@ export default function NuevoZapatoPage() {
                 onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
                 className={field}
               >
-                {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                {tipos.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 

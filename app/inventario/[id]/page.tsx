@@ -26,8 +26,6 @@ type Shoe = {
   fotos: ShoePhoto[]
 }
 
-const TIPOS = ['Zapatilla', 'Zapato', 'Bota', 'Sandalia', 'Oxford', 'Mocasín', 'Deportivo']
-
 export default function EditarZapatoPage() {
   const router = useRouter()
   const params = useParams()
@@ -35,6 +33,17 @@ export default function EditarZapatoPage() {
 
   const [shoe, setShoe] = useState<Shoe | null>(null)
   const [loading, setLoading] = useState(true)
+  const [marcas, setMarcas] = useState<string[]>([])
+  const [tipos, setTipos] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/mantenimiento/marcas').then(r => r.json()).then((data: { nombre: string }[]) => {
+      setMarcas(data.map(m => m.nombre))
+    })
+    fetch('/api/mantenimiento/tipos').then(r => r.json()).then((data: { nombre: string }[]) => {
+      setTipos(data.map(t => t.nombre))
+    })
+  }, [])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -265,9 +274,14 @@ export default function EditarZapatoPage() {
 
             <div>
               <label className={labelCls}>Marca *</label>
-              <input required type="text" value={form.marca}
+              <select value={form.marca}
                 onChange={e => setForm(f => ({ ...f, marca: e.target.value }))}
-                className={fieldCls} />
+                className={fieldCls}>
+                {form.marca && !marcas.includes(form.marca) && (
+                  <option value={form.marca}>{form.marca}</option>
+                )}
+                {marcas.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
             </div>
 
             <div>
@@ -318,7 +332,10 @@ export default function EditarZapatoPage() {
               <select value={form.tipo}
                 onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
                 className={fieldCls}>
-                {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                {form.tipo && !tipos.includes(form.tipo) && (
+                  <option value={form.tipo}>{form.tipo}</option>
+                )}
+                {tipos.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 

@@ -16,36 +16,26 @@ const GRAY     = '#6b7280'
 const GRAY_LT  = '#f3f4f6'
 const BORDER   = '#e5e7eb'
 const GREEN    = '#16a34a'
-const GREEN_LT = '#dcfce7'
 const RED      = '#dc2626'
+const YELLOW   = '#FFE033'
 
-// ─── Layout (A4 = 595 × 842 pt) ──────────────────────────────────────────────
-const PAGE_H    = 842
-const COVER_H   = 100
-const MINI_H    = 32
-const DIV_H     = 3
-const FOOTER_H  = 40
-const PAD_H     = 12   // padding horizontal del grid
-const PAD_T     = 10
-const PAD_B     = 10
-const ROW_GAP   = 10
-const COL_GAP   = 10
-const ROWS      = 2
-const COLS      = 2
-const PER_PAGE  = ROWS * COLS
+// ─── A4 dimensions ────────────────────────────────────────────────────────────
+const PAGE_W        = 595
+const PAGE_H        = 842
 
-// Altura disponible para 2 filas (primera página)
-const AVAIL = PAGE_H - COVER_H - DIV_H - FOOTER_H - PAD_T - PAD_B
-const ROW_H = (AVAIL - ROW_GAP) / ROWS   // ≈ 319
+// ─── Product page layout (1 shoe per page) ────────────────────────────────────
+const HEADER_H      = 90    // black header: brand box only
+const IMG_GRID_H    = 612   // 3-image section
+const PROD_FOOTER_H = 130   // white footer: name + price + size + WA button
+// 90 + 612 + 130 = 832 (10pt buffer under 842)
 
-// Cuerpo de card:
-//  price_block: 6(padV) + 6(padV) + 14(price) = 26
-//  info_block: 8(padT) + 10(modelo) + 2 + 8(marca) + 5 + 9(talla) + 7 + 22(wa_btn) + 8(padB) = 79
-// total body ≈ 105
-const CARD_BODY_H = 108
-const IMAGE_H     = Math.floor(ROW_H - CARD_BODY_H)  // ≈ 211
+const IMG_LEFT_W    = Math.floor(PAGE_W * 0.40)  // 238pt
+const IMG_RIGHT_W   = PAGE_W - IMG_LEFT_W          // 357pt
+const IMG_SMALL_H   = IMG_GRID_H / 2               // 260pt each
 
-const CARD_W = (595 - PAD_H * 2 - COL_GAP) / 2   // ≈ 280
+// ─── Cover page helpers ───────────────────────────────────────────────────────
+const MINI_H        = 32
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ShoeWithImage = {
@@ -63,7 +53,10 @@ type ShoeWithImage = {
   estado: string
   notas: string | null
   sku: string | null
-  imageData: string | null
+  imageData: string | null    // principal → right col (large)
+  imageData2: string | null   // secondary → top-left small
+  imageData3: string | null   // tertiary → bottom-left small
+  etiquetaData: string | null // brand logo for header white box
 }
 
 type Props = {
@@ -72,272 +65,367 @@ type Props = {
   incluirPrecio: boolean
   incluirTallas: boolean
   whatsapp: string
+  brands: string[]
+  previewImages: string[]
 }
 
 const S = StyleSheet.create({
   page: { backgroundColor: WHITE, fontFamily: 'Helvetica' },
 
-  cover: {
+  // ── Cover Page (Caratula) ─────────────────────────────────────────────────
+  coverPage: {
     backgroundColor: BLACK,
-    height: COVER_H,
-    paddingHorizontal: 28,
+    width: '100%',
+    height: '100%',
+    flexDirection: 'column',
+    position: 'relative',
+  },
+  coverTopArea: {
+    paddingTop: 48,
+    paddingHorizontal: 44,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
-  brandName: { fontSize: 34, fontFamily: 'Helvetica-Bold', color: GOLD, letterSpacing: 5 },
-  brandTagline: { fontSize: 7, color: '#9ca3af', letterSpacing: 3, marginTop: 3 },
-  catTitle: { fontSize: 9, color: GOLD_LT, fontFamily: 'Helvetica-Bold', letterSpacing: 2, textAlign: 'right' },
-  catCount: { fontSize: 7, color: '#6b7280', textAlign: 'right', marginTop: 2, letterSpacing: 1 },
-
-  miniHeader: {
-    backgroundColor: BLACK, height: MINI_H,
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 22, justifyContent: 'space-between',
+  coverCatLabel: {
+    fontSize: 72,
+    fontFamily: 'Helvetica-Bold',
+    color: WHITE,
+    letterSpacing: 4,
+    lineHeight: 1,
   },
-  divider: { height: DIV_H, backgroundColor: GOLD },
-
-  grid: {
-    paddingHorizontal: PAD_H,
-    paddingTop: PAD_T,
-    paddingBottom: PAD_B,
+  coverYear: {
+    fontSize: 72,
+    fontFamily: 'Helvetica-Bold',
+    color: GOLD,
+    letterSpacing: 4,
+    lineHeight: 1,
+    marginTop: 2,
+  },
+  coverSubtitle: {
+    fontSize: 14,
+    color: '#9ca3af',
+    letterSpacing: 2,
+    marginTop: 10,
+    fontFamily: 'Helvetica',
+  },
+  coverCardArea: {
+    paddingHorizontal: 44,
+    marginTop: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  coverBrandCard: {
+    backgroundColor: WHITE,
+    borderRadius: 12,
+    padding: 16,
+    width: 220,
+  },
+  coverBrandCardTitle: {
+    fontSize: 7,
+    color: GRAY,
+    letterSpacing: 2,
+    marginBottom: 10,
+    fontFamily: 'Helvetica-Bold',
+  },
+  coverBrandGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-
-  card: {
-    width: CARD_W,
-    height: ROW_H,
-    backgroundColor: WHITE,
-    borderRadius: 7,
-    border: `1 solid ${BORDER}`,
-    overflow: 'hidden',
-    marginBottom: ROW_GAP,
+  coverBrandItem: {
+    width: '50%',
+    paddingVertical: 4,
+    paddingRight: 4,
   },
-
-  // ── Imagen ──────────────────────────────────────────────────────────────────
-  imageBox: { width: '100%', height: IMAGE_H, backgroundColor: GRAY_LT },
-  img: { width: '100%', height: '100%', objectFit: 'contain' },
-  noImg: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
-
-  // ── Bloque de precio (debajo de la imagen, encima del cuerpo) ───────────────
-  priceBlock: {
-    backgroundColor: BLACK,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  coverBrandText: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    color: BLACK,
+    letterSpacing: 0.5,
   },
-  // Precio simple
-  priceSimple: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: GOLD },
-
-  // Antes / Ahora
-  antesRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  antesWrap: { position: 'relative' },
-  antesText: { fontSize: 9, color: '#9ca3af' },
-  tacho: {
-    position: 'absolute',
-    height: 1,
-    backgroundColor: RED,
-    top: '50%',
-    left: 0,
-    right: 0,
-  },
-  ahoraWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
-  ahoraLabel: { fontSize: 7, color: GOLD_LT, fontFamily: 'Helvetica-Bold', letterSpacing: 1 },
-  ahoraPrice: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: GOLD },
-
-  // ── Cuerpo de card ──────────────────────────────────────────────────────────
-  body: { paddingHorizontal: 10, paddingTop: 8, paddingBottom: 8 },
-  modelo: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: BLACK, marginBottom: 2 },
-  marca:  { fontSize: 7, color: GRAY, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 5 },
-
-  // Talla en formato limpio: "Talla 38.5  (US 8 / UK 5.5)"
-  tallaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
-  tallaChip: {
-    backgroundColor: '#fef3c7',
-    borderRadius: 3,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    border: `0.5 solid #fde68a`,
-    marginRight: 5,
-  },
-  tallaChipTxt: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#92400e' },
-  tallaExtra: { fontSize: 8, color: GRAY },
-
-  // ── Botón WhatsApp ──────────────────────────────────────────────────────────
-  waBtn: {
-    backgroundColor: GREEN,
-    borderRadius: 5,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
+  coverBadge: {
+    backgroundColor: GOLD,
+    borderRadius: 44,
+    width: 88,
+    height: 88,
+    marginLeft: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
   },
-  waBtnTxt: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: WHITE, letterSpacing: 0.3 },
+  coverBadgePct: {
+    fontSize: 22,
+    fontFamily: 'Helvetica-Bold',
+    color: BLACK,
+    lineHeight: 1,
+  },
+  coverBadgeLbl: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    color: BLACK,
+    letterSpacing: 1,
+  },
+  coverImgRow: {
+    flexDirection: 'row',
+    height: 360,
+    marginTop: 28,
+    gap: 4,
+  },
+  coverImgItem: {
+    flex: 1,
+    height: 360,
+    objectFit: 'cover',
+  },
+  coverBottomStrip: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 36,
+    backgroundColor: '#1f2937',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coverBottomText: {
+    fontSize: 11,
+    color: '#9ca3af',
+    letterSpacing: 6,
+    fontFamily: 'Helvetica-Bold',
+  },
 
-  // ── Footer ──────────────────────────────────────────────────────────────────
-  footer: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    height: FOOTER_H, backgroundColor: BLACK,
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', paddingHorizontal: 24,
+  // ── Product page (1 per shoe) ─────────────────────────────────────────────
+  productPage: { backgroundColor: WHITE, fontFamily: 'Helvetica', flexDirection: 'column' },
+
+  prodHeader: {
+    backgroundColor: BLACK,
+    height: HEADER_H,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
   },
-  footerBrand: { fontSize: 10, fontFamily: 'Helvetica-Bold', color: GOLD, letterSpacing: 3 },
-  footerNote: { fontSize: 6, color: '#9ca3af', textAlign: 'right', lineHeight: 1.6 },
+  brandBox: {
+    backgroundColor: WHITE,
+    borderRadius: 8,
+    width: 240,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandImg: { width: '100%', height: '100%', objectFit: 'contain' },
+  brandTxtFallback: { fontSize: 22, fontFamily: 'Helvetica-Bold', color: BLACK, letterSpacing: 2 },
+
+  priceBadge: {
+    backgroundColor: YELLOW,
+    borderRadius: 16,
+    width: 150,
+    height: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  priceBadgeTxt: { fontSize: 36, fontFamily: 'Helvetica-Bold', color: BLACK, lineHeight: 1 },
+
+  imgGrid: { flexDirection: 'row', height: IMG_GRID_H },
+  imgLeft: { width: IMG_LEFT_W, flexDirection: 'column' },
+  imgSmallA: {
+    width: IMG_LEFT_W,
+    height: IMG_GRID_H / 2,
+    backgroundColor: GRAY_LT,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+  },
+  imgSmallB: { width: IMG_LEFT_W, height: IMG_GRID_H / 2, backgroundColor: GRAY_LT },
+  imgRight: {
+    width: IMG_RIGHT_W,
+    height: IMG_GRID_H,
+    backgroundColor: GRAY_LT,
+    borderLeftWidth: 1,
+    borderLeftColor: BORDER,
+  },
+  imgFill: { width: '100%', height: '100%', objectFit: 'cover' },
+
+  prodFooter: {
+    height: PROD_FOOTER_H,
+    backgroundColor: WHITE,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  prodFooterLeft: {
+    width: '60%',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  prodFooterRight: {
+    width: '40%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prodModelo: { fontSize: 24, fontFamily: 'Helvetica-Bold', color: BLACK, marginBottom: 8 },
+  prodTalla:  { fontSize: 17, color: GRAY, marginBottom: 14 },
+  prodWaBtn: {
+    backgroundColor: GREEN,
+    borderRadius: 7,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prodWaBtnTxt: { fontSize: 13, fontFamily: 'Helvetica-Bold', color: WHITE, letterSpacing: 0.3 },
 })
 
-function PriceBlock({ precio, precioVenta }: { precio: number | null; precioVenta: number | null }) {
-  if (!precioVenta) return <View style={{ height: 0 }} />
-
-  const tieneAntes = precio != null
+function CaratulaPDFPage({
+  titulo,
+  brands,
+  previewImages,
+  totalShoes,
+}: {
+  titulo: string
+  brands: string[]
+  previewImages: string[]
+  totalShoes: number
+}) {
+  const year = new Date().getFullYear().toString()
 
   return (
-    <View style={S.priceBlock}>
-      {tieneAntes ? (
-        // Antes / Ahora
-        <View style={S.antesRow}>
-          <View style={S.antesWrap}>
-            <Text style={S.antesText}>S/ {precio!.toFixed(2)}</Text>
-            <View style={S.tacho} />
+    <Page size="A4" style={S.page}>
+      <View style={S.coverPage}>
+
+        <View style={S.coverTopArea}>
+          <View>
+            <Text style={S.coverCatLabel}>CATALOGO</Text>
+            <Text style={S.coverYear}>{year}</Text>
+            <Text style={S.coverSubtitle}>{titulo.toUpperCase()}</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end', paddingTop: 8 }}>
+            <Text style={{ fontSize: 9, color: '#6b7280', letterSpacing: 2 }}>
+              {totalShoes} MODELOS
+            </Text>
           </View>
         </View>
-      ) : (
-        <View />
-      )}
-      <View style={S.ahoraWrap}>
-        {tieneAntes && <Text style={S.ahoraLabel}>AHORA</Text>}
-        <Text style={S.ahoraPrice}>S/ {precioVenta.toFixed(2)}</Text>
+
+        <View style={S.coverImgRow}>
+          {previewImages.map((src, idx) => (
+            <Image key={idx} src={src} style={S.coverImgItem} />
+          ))}
+        </View>
+
+        <View style={S.coverBottomStrip}>
+          <Text style={S.coverBottomText}>LIQUIDACION</Text>
+        </View>
+
       </View>
-    </View>
+    </Page>
   )
 }
 
-function TallaLine({ eurSize, usSize, ukSize }: { eurSize: number; usSize: number | null; ukSize: number | null }) {
-  const extras: string[] = []
-  if (usSize) extras.push(`US ${usSize}`)
-  if (ukSize) extras.push(`UK ${ukSize}`)
-  const extraStr = extras.length ? `  (${extras.join(' / ')})` : ''
-
-  return (
-    <View style={S.tallaRow}>
-      <View style={S.tallaChip}>
-        <Text style={S.tallaChipTxt}>EUR {eurSize}</Text>
-      </View>
-      {extraStr ? <Text style={S.tallaExtra}>{extraStr}</Text> : null}
-    </View>
-  )
-}
-
-function Card({ shoe, incluirPrecio, incluirTallas, whatsapp, marginRight }: {
+function ShoePage({ shoe, incluirPrecio, incluirTallas, whatsapp }: {
   shoe: ShoeWithImage
   incluirPrecio: boolean
   incluirTallas: boolean
   whatsapp: string
-  marginRight?: number
 }) {
   const msg = encodeURIComponent(
-    `Hola MAGILU! Me interesa el modelo *${shoe.modelo}* (${shoe.marca}) talla EUR ${shoe.eurSize}. ¿Está disponible?`
+    `Hola MAGILU! Me interesa el modelo *${shoe.modelo}* (${shoe.marca}) talla EUR ${shoe.eurSize}. Esta disponible?`
   )
   const waUrl = `https://wa.me/${whatsapp}?text=${msg}`
 
+  const tallaParts = [`TALLA: ${shoe.eurSize}`]
+  if (shoe.usSize) tallaParts.push(`US: ${shoe.usSize}`)
+  const tallaStr = tallaParts.join(' / ')
+
   return (
-    <View style={[S.card, marginRight ? { marginRight } : {}]}>
-      {/* Imagen */}
-      <View style={S.imageBox}>
-        {shoe.imageData
-          ? <Image src={shoe.imageData} style={S.img} />
-          : <View style={S.noImg}><Text style={{ fontSize: 20, color: '#d1d5db' }}>—</Text></View>
-        }
+    <Page size="A4" style={S.productPage}>
+
+      {/* BLACK HEADER: brand logo box only */}
+      <View style={S.prodHeader}>
+        <View style={S.brandBox}>
+          {shoe.etiquetaData
+            ? <Image src={shoe.etiquetaData} style={S.brandImg} />
+            : <Text style={S.brandTxtFallback}>{shoe.marca.toUpperCase()}</Text>
+          }
+        </View>
       </View>
 
-      {/* Precio debajo de la imagen */}
-      {incluirPrecio && <PriceBlock precio={shoe.precio} precioVenta={shoe.precioVenta} />}
-
-      {/* Info */}
-      <View style={S.body}>
-        <Text style={S.modelo}>{shoe.modelo}</Text>
-        <Text style={S.marca}>{shoe.marca}</Text>
-
-        {incluirTallas && (
-          <TallaLine eurSize={shoe.eurSize} usSize={shoe.usSize} ukSize={shoe.ukSize} />
-        )}
-
-        {/* CTA WhatsApp */}
-        {whatsapp ? (
-          <Link src={waUrl} style={{ textDecoration: 'none' }}>
-            <View style={S.waBtn}>
-              <Text style={S.waBtnTxt}>Comprar por WhatsApp</Text>
-            </View>
-          </Link>
-        ) : (
-          <View style={[S.waBtn, { backgroundColor: GREEN }]}>
-            <Text style={S.waBtnTxt}>Comprar por WhatsApp</Text>
+      {/* 3-IMAGE GRID: 2 small left + 1 main right */}
+      <View style={S.imgGrid}>
+        <View style={S.imgLeft}>
+          <View style={S.imgSmallA}>
+            {(shoe.imageData2 ?? shoe.imageData)
+              ? <Image src={(shoe.imageData2 ?? shoe.imageData)!} style={S.imgFill} />
+              : null}
           </View>
-        )}
+          <View style={S.imgSmallB}>
+            {(shoe.imageData3 ?? shoe.imageData)
+              ? <Image src={(shoe.imageData3 ?? shoe.imageData)!} style={S.imgFill} />
+              : null}
+          </View>
+        </View>
+        <View style={S.imgRight}>
+          {shoe.imageData
+            ? <Image src={shoe.imageData} style={S.imgFill} />
+            : null}
+        </View>
       </View>
-    </View>
+
+      {/* WHITE FOOTER: model name + size + WhatsApp left | price right */}
+      <View style={S.prodFooter}>
+        {/* Left: model name + size + WhatsApp */}
+        <View style={S.prodFooterLeft}>
+          <Text style={S.prodModelo}>{shoe.modelo.toUpperCase()}</Text>
+          {incluirTallas && (
+            <Text style={S.prodTalla}>{tallaStr}</Text>
+          )}
+          {whatsapp ? (
+            <Link src={waUrl} style={{ textDecoration: 'none' }}>
+              <View style={S.prodWaBtn}>
+                <Text style={S.prodWaBtnTxt}>Comprar por WhatsApp</Text>
+              </View>
+            </Link>
+          ) : (
+            <View style={S.prodWaBtn}>
+              <Text style={S.prodWaBtnTxt}>Comprar por WhatsApp</Text>
+            </View>
+          )}
+        </View>
+        {/* Right: price badge */}
+        <View style={S.prodFooterRight}>
+          {incluirPrecio && shoe.precioVenta && (
+            <View style={S.priceBadge}>
+              <Text style={S.priceBadgeTxt}>S/ {shoe.precioVenta.toFixed(0)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+    </Page>
   )
 }
 
-export function CatalogoPDF({ shoes, titulo, incluirPrecio, incluirTallas, whatsapp }: Props) {
-  const chunks: ShoeWithImage[][] = []
-  for (let i = 0; i < shoes.length; i += PER_PAGE) {
-    chunks.push(shoes.slice(i, i + PER_PAGE))
-  }
-
+export function CatalogoPDF({ shoes, titulo, incluirPrecio, incluirTallas, whatsapp, brands, previewImages }: Props) {
   return (
     <Document title={titulo} author="MAGILU">
-      {chunks.map((chunk, pageIdx) => (
-        <Page key={pageIdx} size="A4" style={S.page}>
 
-          {pageIdx === 0 ? (
-            <>
-              <View style={S.cover}>
-                <View>
-                  <Text style={S.brandName}>MAGILU</Text>
-                  <Text style={S.brandTagline}>PREMIUM FOOTWEAR</Text>
-                </View>
-                <View>
-                  <Text style={S.catTitle}>{titulo.toUpperCase()}</Text>
-                  <Text style={S.catCount}>{shoes.length} MODELOS DISPONIBLES</Text>
-                </View>
-              </View>
-              <View style={S.divider} />
-            </>
-          ) : (
-            <>
-              <View style={S.miniHeader}>
-                <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: GOLD, letterSpacing: 3 }}>MAGILU</Text>
-                <Text style={{ fontSize: 7, color: '#9ca3af', letterSpacing: 1 }}>{titulo.toUpperCase()}</Text>
-              </View>
-              <View style={S.divider} />
-            </>
-          )}
+      {/* Page 1: Cover (Caratula) */}
+      <CaratulaPDFPage
+        titulo={titulo}
+        brands={brands}
+        previewImages={previewImages}
+        totalShoes={shoes.length}
+      />
 
-          <View style={S.grid}>
-            {chunk.map((shoe, i) => (
-              <Card
-                key={shoe.id}
-                shoe={shoe}
-                incluirPrecio={incluirPrecio}
-                incluirTallas={incluirTallas}
-                whatsapp={whatsapp}
-                marginRight={i % COLS === 0 ? COL_GAP : 0}
-              />
-            ))}
-          </View>
-
-          <View style={S.footer}>
-            <Text style={S.footerBrand}>MAGILU</Text>
-            <Text style={S.footerNote}>{'Consultas y pedidos por WhatsApp\nMagilu Premium Footwear'}</Text>
-          </View>
-
-        </Page>
+      {/* 1 full page per shoe — skip if no images loaded */}
+      {shoes.filter(s => !!s.imageData).map(shoe => (
+        <ShoePage
+          key={shoe.id}
+          shoe={shoe}
+          incluirPrecio={incluirPrecio}
+          incluirTallas={incluirTallas}
+          whatsapp={whatsapp}
+        />
       ))}
+
     </Document>
   )
 }
