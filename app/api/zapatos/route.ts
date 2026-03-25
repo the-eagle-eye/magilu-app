@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import { getUploadDir } from '@/lib/upload-dir'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     data: { modelo, marca, eurSize, usSize, ukSize, color, tipo, genero, precio, precioVenta, estado, notas, sku },
   })
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+  const uploadDir = getUploadDir()
   await mkdir(uploadDir, { recursive: true })
 
   // Guardar fotos del zapato

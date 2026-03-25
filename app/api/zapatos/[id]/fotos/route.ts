@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
+import { getUploadDir } from '@/lib/upload-dir'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const formData = await req.formData()
   const fotoFiles = formData.getAll('fotos') as File[]
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+  const uploadDir = getUploadDir()
   await mkdir(uploadDir, { recursive: true })
 
   const existingCount = await prisma.shoePhoto.count({ where: { shoeId: id } })

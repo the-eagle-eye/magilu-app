@@ -1,8 +1,14 @@
 #!/bin/sh
 set -e
 
-# Ensure DB directory exists
+# Ensure DB directory exists (on the persistent volume)
 mkdir -p /app/prisma/data
+
+# Ensure uploads directory exists (on the persistent volume)
+if [ -n "$UPLOAD_DIR" ]; then
+  mkdir -p "$UPLOAD_DIR"
+  mkdir -p "$UPLOAD_DIR/marcas"
+fi
 
 # Run migrations
 echo "Running database migrations..."
@@ -16,12 +22,7 @@ prisma.shoe.count().then(n => { console.log(n); prisma.\$disconnect(); });
 " 2>/dev/null || echo "0")
 
 if [ "$SHOE_COUNT" = "0" ]; then
-  echo "Seeding database with initial inventory..."
-  node -e "
-const { PrismaClient } = require('@prisma/client');
-" 2>/dev/null || true
-  # Seed is handled by the seed script, run via ts-node in dev
-  # In production, we use the compiled seed
+  echo "Database is empty, ready for data."
 fi
 
 echo "Starting server..."

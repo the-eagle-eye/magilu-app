@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import path from 'path'
 import fs from 'fs'
+import { getUploadDir } from '@/lib/upload-dir'
 
 const BRANDS_DIR = path.join(process.cwd(), 'brands')
 
@@ -23,11 +24,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (file && file.size > 0) {
     // Remove old file
     if (existing.logoPath) {
-      const oldAbs = path.join(process.cwd(), 'public', existing.logoPath)
+      const oldAbs = path.join(getUploadDir(), existing.logoPath.replace(/^\/uploads\//, ''))
       if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs)
     }
 
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'marcas')
+    const uploadsDir = getUploadDir('marcas')
     fs.mkdirSync(uploadsDir, { recursive: true })
     fs.mkdirSync(BRANDS_DIR, { recursive: true })
 
@@ -55,7 +56,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!existing) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
 
   if (existing.logoPath) {
-    const abs = path.join(process.cwd(), 'public', existing.logoPath)
+    const abs = path.join(getUploadDir(), existing.logoPath.replace(/^\/uploads\//, ''))
     if (fs.existsSync(abs)) fs.unlinkSync(abs)
   }
 

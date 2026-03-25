@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import path from 'path'
+import { getUploadDir } from '@/lib/upload-dir'
 
 const MIME: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -16,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path: segments } = await params
-  const filePath = path.join(process.cwd(), 'public', 'uploads', ...segments)
+  const filePath = path.join(getUploadDir(), ...segments)
 
   try {
     const file = await readFile(filePath)

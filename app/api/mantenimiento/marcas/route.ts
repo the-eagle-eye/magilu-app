@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import path from 'path'
 import fs from 'fs'
+import { getUploadDir } from '@/lib/upload-dir'
 
 const BRANDS_DIR = path.join(process.cwd(), 'brands')
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   let logoPath: string | null = null
 
   if (file && file.size > 0) {
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'marcas')
+    const uploadsDir = getUploadDir('marcas')
     fs.mkdirSync(uploadsDir, { recursive: true })
     fs.mkdirSync(BRANDS_DIR, { recursive: true })
 

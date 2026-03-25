@@ -44,4 +44,7 @@ next-env.d.ts
 prisma/data/
 public/uploads/
 data/
+
+# Railway
+.railway/
 !.env.example
