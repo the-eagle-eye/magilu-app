@@ -44,9 +44,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Entrypoint script
+# Entrypoint script (sed strips Windows CRLF line endings)
 COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 USER nextjs
 
