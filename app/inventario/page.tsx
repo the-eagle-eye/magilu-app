@@ -19,7 +19,7 @@ type Shoe = {
   estado: string
   notas: string | null
   sku: string | null
-  fotos: { id: string; path: string; esPrincipal: boolean }[]
+  fotos: { id: string; path: string; esPrincipal: boolean; tipo: string }[]
 }
 
 const ESTADOS = ['todos', 'disponible', 'reservado', 'vendido']
@@ -28,6 +28,7 @@ const GENEROS = ['todos', 'hombre', 'mujer']
 export default function InventarioPage() {
   const [shoes, setShoes] = useState<Shoe[]>([])
   const [loading, setLoading] = useState(true)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [estado, setEstado] = useState('disponible')
   const [genero, setGenero] = useState('todos')
@@ -45,6 +46,30 @@ export default function InventarioPage() {
   }, [q, estado, genero])
 
   useEffect(() => { fetchShoes() }, [fetchShoes])
+
+  async function downloadPhotos(shoe: Shoe) {
+    const fotoZapato = shoe.fotos.filter(f => f.tipo === 'zapato')
+    if (!fotoZapato.length) return
+    setDownloadingId(shoe.id)
+    for (let i = 0; i < fotoZapato.length; i++) {
+      const foto = fotoZapato[i]
+      try {
+        const res = await fetch(foto.path)
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        const ext = foto.path.split('.').pop() ?? 'jpg'
+        a.download = `${shoe.marca}_${shoe.modelo}_${i + 1}.${ext}`
+        a.click()
+        URL.revokeObjectURL(url)
+        await new Promise(r => setTimeout(r, 400))
+      } catch {
+        // skip failed photo
+      }
+    }
+    setDownloadingId(null)
+  }
 
   async function cambiarEstado(id: string, nuevoEstado: string) {
     await fetch(`/api/zapatos/${id}`, {
@@ -185,6 +210,16 @@ export default function InventarioPage() {
                       <option value="vendido">Vendido</option>
                     </select>
                   </div>
+                  {shoe.fotos.some(f => f.tipo === 'zapato') && (
+                    <button
+                      onClick={() => downloadPhotos(shoe)}
+                      disabled={downloadingId === shoe.id}
+                      className="w-full mt-2 text-xs font-semibold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 py-1.5 rounded-md transition-colors disabled:opacity-50"
+                    >
+                      {downloadingId === shoe.id ? 'Descargando...' : `↓ Descargar fotos (${shoe.fotos.filter(f => f.tipo === 'zapato').length})`}
+                    </button>
+                  )}
+
                 </div>
               </div>
             )

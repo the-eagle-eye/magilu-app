@@ -47,6 +47,7 @@ export default function EditarZapatoPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [newPreviews, setNewPreviews] = useState<string[]>([])
 
@@ -124,6 +125,30 @@ export default function EditarZapatoPage() {
   async function deletePhoto(photoId: string) {
     await fetch(`/api/zapatos/${id}/fotos/${photoId}`, { method: 'DELETE' })
     fetchShoe()
+  }
+
+  async function downloadAllPhotos() {
+    if (!shoe?.fotos.length) return
+    setDownloading(true)
+    for (let i = 0; i < shoe.fotos.length; i++) {
+      const foto = shoe.fotos[i]
+      try {
+        const res = await fetch(foto.path)
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        const ext = foto.path.split('.').pop() ?? 'jpg'
+        a.download = `${shoe.marca}_${shoe.modelo}_${i + 1}.${ext}`
+        a.click()
+        URL.revokeObjectURL(url)
+        // Small delay so browser doesn't block multiple downloads
+        await new Promise(r => setTimeout(r, 400))
+      } catch {
+        // skip failed photo
+      }
+    }
+    setDownloading(false)
   }
 
   async function uploadNewPhotos(shoeId: string) {
@@ -208,7 +233,19 @@ export default function EditarZapatoPage() {
 
         {/* Fotos existentes */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <h2 className="text-sm font-bold text-gray-700 mb-4">Fotos</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-700">Fotos</h2>
+            {shoe.fotos.length > 0 && (
+              <button
+                type="button"
+                onClick={downloadAllPhotos}
+                disabled={downloading}
+                className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {downloading ? 'Descargando...' : '↓ Descargar fotos'}
+              </button>
+            )}
+          </div>
 
           {shoe.fotos.length > 0 && (
             <div className="flex flex-wrap gap-3 mb-4">
