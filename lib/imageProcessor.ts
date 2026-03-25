@@ -14,6 +14,7 @@ export async function processShoeImage(
     if (size < 5000) return null
 
     const buffer = await sharp(filePath)
+      .rotate()  // auto-rotate based on EXIF orientation
       .resize(width, height, { fit: 'cover' })
       .jpeg({ quality: 90, mozjpeg: true })
       .toBuffer()

@@ -232,8 +232,9 @@ const S = StyleSheet.create({
     backgroundColor: GRAY_LT,
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
+    padding: 10,
   },
-  imgSmallB: { width: IMG_LEFT_W, height: IMG_GRID_H / 2, backgroundColor: GRAY_LT },
+  imgSmallB: { width: IMG_LEFT_W, height: IMG_GRID_H / 2, backgroundColor: GRAY_LT, padding: 10 },
   imgRight: {
     width: IMG_RIGHT_W,
     height: IMG_GRID_H,
@@ -242,6 +243,7 @@ const S = StyleSheet.create({
     borderLeftColor: BORDER,
   },
   imgFill: { width: '100%', height: '100%', objectFit: 'cover' },
+  imgContain: { width: '100%', height: '100%', objectFit: 'contain' },
 
   prodFooter: {
     height: PROD_FOOTER_H,
@@ -353,12 +355,12 @@ function ShoePage({ shoe, incluirPrecio, incluirTallas, whatsapp }: {
         <View style={S.imgLeft}>
           <View style={S.imgSmallA}>
             {(shoe.imageData2 ?? shoe.imageData)
-              ? <Image src={(shoe.imageData2 ?? shoe.imageData)!} style={S.imgFill} />
+              ? <Image src={(shoe.imageData2 ?? shoe.imageData)!} style={S.imgContain} />
               : null}
           </View>
           <View style={S.imgSmallB}>
             {(shoe.imageData3 ?? shoe.imageData)
-              ? <Image src={(shoe.imageData3 ?? shoe.imageData)!} style={S.imgFill} />
+              ? <Image src={(shoe.imageData3 ?? shoe.imageData)!} style={S.imgContain} />
               : null}
           </View>
         </View>
