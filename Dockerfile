@@ -35,16 +35,16 @@ RUN groupadd --system --gid 1001 nodejs
 RUN useradd --system --uid 1001 --gid 1001 nextjs
 
 # Copy built app
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma schema and migrations for runtime migrate
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Entrypoint script (sed strips Windows CRLF line endings)
-COPY docker-entrypoint.sh ./
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
 RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 USER nextjs
