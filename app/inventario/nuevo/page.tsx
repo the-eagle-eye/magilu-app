@@ -150,7 +150,7 @@ export default function NuevoZapatoPage() {
     const res = await fetch('/api/zapatos', { method: 'POST', body: fd })
     if (res.ok) {
       setSaved(true)
-      setTimeout(() => router.push('/inventario'), 5000)
+      setTimeout(() => router.push('/inventario'), 2000)
     } else {
       alert('Error al guardar el zapato')
       setSaving(false)
