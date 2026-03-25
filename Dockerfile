@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS base
+FROM node:20.20.1-bookworm-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -41,10 +41,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma schema and migrations for runtime migrate
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma* ./node_modules/.bin/
+COPY --from=builder /app/node_modules ./node_modules
 
 # Entrypoint script (sed strips Windows CRLF line endings)
 COPY docker-entrypoint.sh ./
