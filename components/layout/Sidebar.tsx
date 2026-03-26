@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 
 const nav = [
   { href: '/', label: 'Dashboard' },
@@ -20,7 +21,7 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false)
   const [mtOpen, setMtOpen] = useState(false)
 
-  if (path === '/login') return null
+  if (path === '/login' || path === '/tienda') return null
 
   const isMt = path.startsWith('/mantenimiento')
 
@@ -91,11 +92,12 @@ export default function Sidebar() {
 
           {/* Right: sign out + mobile hamburger */}
           <div className="flex items-center gap-3">
-            <form action="/api/auth/signout" method="POST" className="hidden md:block">
-              <button className="text-xs text-white/30 hover:text-white/60 transition-colors tracking-widest uppercase">
-                Salir
-              </button>
-            </form>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="hidden md:block text-xs text-white/30 hover:text-white/60 transition-colors tracking-widest uppercase"
+            >
+              Salir
+            </button>
             <button
               onClick={() => setOpen(!open)}
               className="md:hidden text-white text-xl leading-none p-1"
