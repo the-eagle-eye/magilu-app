@@ -32,6 +32,12 @@ export default function InventarioPage() {
   const [q, setQ] = useState('')
   const [estado, setEstado] = useState('disponible')
   const [genero, setGenero] = useState('todos')
+  const [talla, setTalla] = useState('')
+  const [tallas, setTallas] = useState<number[]>([])
+
+  useEffect(() => {
+    fetch('/api/zapatos?tallas=1').then(r => r.json()).then(setTallas)
+  }, [])
 
   const fetchShoes = useCallback(async () => {
     setLoading(true)
@@ -39,11 +45,12 @@ export default function InventarioPage() {
     if (q) params.set('q', q)
     if (estado !== 'todos') params.set('estado', estado)
     if (genero !== 'todos') params.set('genero', genero)
+    if (talla) params.set('eurSize', talla)
     const res = await fetch(`/api/zapatos?${params}`)
     const data = await res.json()
     setShoes(data)
     setLoading(false)
-  }, [q, estado, genero])
+  }, [q, estado, genero, talla])
 
   useEffect(() => { fetchShoes() }, [fetchShoes])
 
@@ -145,6 +152,20 @@ export default function InventarioPage() {
             </button>
           ))}
         </div>
+        <select
+          value={talla}
+          onChange={e => setTalla(e.target.value)}
+          className={`px-3 py-2 rounded-md text-xs font-semibold transition-colors border focus:outline-none focus:ring-2 focus:ring-amber-400 ${
+            talla ? 'bg-black text-white border-black' : 'bg-gray-100 text-gray-600 border-gray-100 hover:bg-gray-200'
+          }`}
+        >
+          <option value="" className="bg-white text-gray-900">Talla</option>
+          {tallas.map((t: number) => (
+            <option key={t} value={String(t)} className="bg-white text-gray-900">
+              EUR {t}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Grid */}

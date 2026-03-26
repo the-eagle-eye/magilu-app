@@ -11,6 +11,16 @@ export async function GET(req: NextRequest) {
   const genero = searchParams.get('genero')
   const eurSize = searchParams.get('eurSize')
   const q = searchParams.get('q')
+  const tallas = searchParams.get('tallas')
+
+  if (tallas) {
+    const rows = await prisma.shoe.findMany({
+      select: { eurSize: true },
+      distinct: ['eurSize'],
+      orderBy: { eurSize: 'asc' },
+    })
+    return NextResponse.json(rows.map(r => r.eurSize))
+  }
 
   const shoes = await prisma.shoe.findMany({
     where: {
