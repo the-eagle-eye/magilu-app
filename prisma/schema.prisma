@@ -30,6 +30,8 @@ model Shoe {
   @@index([marca])
   @@index([eurSize])
   @@index([estado])
+  @@index([estado, genero])
+  @@index([estado, eurSize])
 }
 
 model ShoePhoto {
@@ -40,6 +42,9 @@ model ShoePhoto {
   tipo        String   @default("zapato")
   esPrincipal Boolean  @default(false)
   createdAt   DateTime @default(now())
+
+  @@index([shoeId])
+  @@index([shoeId, esPrincipal])
 }
 
 model User {

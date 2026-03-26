@@ -65,6 +65,7 @@ export default async function TiendaPage({ searchParams }: Props) {
                       <img
                         src={mainPhoto.path}
                         alt={shoe.modelo}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     ) : (

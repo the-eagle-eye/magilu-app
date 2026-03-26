@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getUploadDir } from '@/lib/upload-dir'
+import sharp from 'sharp'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,8 +19,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   for (let i = 0; i < fotoFiles.length; i++) {
     const file = fotoFiles[i]
     if (!file.size) continue
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const filename = `${id}-${Date.now()}-${i}-${file.name.replace(/\s/g, '_')}`
+    const rawBuffer = Buffer.from(await file.arrayBuffer())
+    if (rawBuffer.length < 5000) continue
+    const buffer = await sharp(rawBuffer)
+      .rotate()
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer()
+    const filename = `${id}-${Date.now()}-${i}.jpg`
     const filepath = path.join(uploadDir, filename)
     await writeFile(filepath, buffer)
     const photo = await prisma.shoePhoto.create({

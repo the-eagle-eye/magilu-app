@@ -24,35 +24,68 @@ type Shoe = {
 
 const ESTADOS = ['todos', 'disponible', 'reservado', 'vendido']
 const GENEROS = ['todos', 'hombre', 'mujer']
+const PAGE_SIZE = 40
 
 export default function InventarioPage() {
   const [shoes, setShoes] = useState<Shoe[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [inputQ, setInputQ] = useState('')
   const [q, setQ] = useState('')
   const [estado, setEstado] = useState('disponible')
   const [genero, setGenero] = useState('todos')
   const [talla, setTalla] = useState('')
   const [tallas, setTallas] = useState<number[]>([])
+  const [offset, setOffset] = useState(0)
+  const [total, setTotal] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
 
   useEffect(() => {
     fetch('/api/zapatos?tallas=1').then(r => r.json()).then(setTallas)
   }, [])
 
-  const fetchShoes = useCallback(async () => {
-    setLoading(true)
+  // Debounce search input 400ms
+  useEffect(() => {
+    const timer = setTimeout(() => setQ(inputQ), 400)
+    return () => clearTimeout(timer)
+  }, [inputQ])
+
+  const fetchShoes = useCallback(async (append = false) => {
+    if (append) setLoadingMore(true)
+    else setLoading(true)
+
+    const currentOffset = append ? offset + PAGE_SIZE : 0
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     if (estado !== 'todos') params.set('estado', estado)
     if (genero !== 'todos') params.set('genero', genero)
     if (talla) params.set('eurSize', talla)
+    params.set('limit', String(PAGE_SIZE))
+    params.set('offset', String(currentOffset))
+
     const res = await fetch(`/api/zapatos?${params}`)
     const data = await res.json()
-    setShoes(data)
-    setLoading(false)
-  }, [q, estado, genero, talla])
 
-  useEffect(() => { fetchShoes() }, [fetchShoes])
+    if (append) {
+      setShoes(prev => [...prev, ...data.shoes])
+      setOffset(currentOffset)
+    } else {
+      setShoes(data.shoes)
+      setOffset(0)
+    }
+    setTotal(data.total)
+    setHasMore(data.hasMore)
+
+    if (append) setLoadingMore(false)
+    else setLoading(false)
+  }, [q, estado, genero, talla, offset])
+
+  // Reset and reload when filters change
+  useEffect(() => {
+    fetchShoes(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, estado, genero, talla])
 
   async function downloadPhotos(shoe: Shoe) {
     const fotoZapato = shoe.fotos.filter(f => f.tipo === 'zapato')
@@ -99,7 +132,7 @@ export default function InventarioPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
-          <p className="text-sm text-gray-500 mt-1">{shoes.length} pares</p>
+          <p className="text-sm text-gray-500 mt-1">{total} pares</p>
         </div>
         <div className="flex gap-2 self-start sm:self-auto">
           <a
@@ -122,8 +155,8 @@ export default function InventarioPage() {
         <input
           type="text"
           placeholder="Buscar modelo, marca, color, SKU..."
-          value={q}
-          onChange={e => setQ(e.target.value)}
+          value={inputQ}
+          onChange={e => setInputQ(e.target.value)}
           className="w-full sm:flex-1 border border-gray-200 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
         />
         <div className="flex gap-1 flex-wrap">
@@ -245,6 +278,19 @@ export default function InventarioPage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Cargar más */}
+      {hasMore && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => fetchShoes(true)}
+            disabled={loadingMore}
+            className="px-6 py-2.5 rounded-md text-sm font-semibold bg-black text-white hover:bg-amber-400 hover:text-black transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? 'Cargando...' : `Cargar más (${total - shoes.length} restantes)`}
+          </button>
         </div>
       )}
     </div>

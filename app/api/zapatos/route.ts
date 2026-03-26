@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { getUploadDir } from '@/lib/upload-dir'
+import sharp from 'sharp'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -22,26 +23,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(rows.map(r => r.eurSize))
   }
 
-  const shoes = await prisma.shoe.findMany({
-    where: {
-      ...(marca && { marca }),
-      ...(estado && { estado }),
-      ...(genero && { genero }),
-      ...(eurSize && { eurSize: parseFloat(eurSize) }),
-      ...(q && {
-        OR: [
-          { modelo: { contains: q } },
-          { marca: { contains: q } },
-          { color: { contains: q } },
-          { sku: { contains: q } },
-        ],
-      }),
-    },
-    include: { fotos: true },
-    orderBy: [{ marca: 'asc' }, { eurSize: 'asc' }, { modelo: 'asc' }],
-  })
+  const limit = parseInt(searchParams.get('limit') ?? '40')
+  const offset = parseInt(searchParams.get('offset') ?? '0')
 
-  return NextResponse.json(shoes)
+  const where = {
+    ...(marca && { marca }),
+    ...(estado && { estado }),
+    ...(genero && { genero }),
+    ...(eurSize && { eurSize: parseFloat(eurSize) }),
+    ...(q && {
+      OR: [
+        { modelo: { contains: q } },
+        { marca: { contains: q } },
+        { color: { contains: q } },
+        { sku: { contains: q } },
+      ],
+    }),
+  }
+
+  const [total, shoes] = await Promise.all([
+    prisma.shoe.count({ where }),
+    prisma.shoe.findMany({
+      where,
+      include: { fotos: true },
+      orderBy: [{ marca: 'asc' }, { eurSize: 'asc' }, { modelo: 'asc' }],
+      take: limit,
+      skip: offset,
+    }),
+  ])
+
+  return NextResponse.json({ shoes, total, hasMore: offset + shoes.length < total })
 }
 
 export async function POST(req: NextRequest) {
@@ -73,8 +84,14 @@ export async function POST(req: NextRequest) {
   for (let i = 0; i < fotoFiles.length; i++) {
     const file = fotoFiles[i]
     if (!file.size) continue
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const filename = `${shoe.id}-${Date.now()}-${i}-${file.name.replace(/\s/g, '_')}`
+    const rawBuffer = Buffer.from(await file.arrayBuffer())
+    if (rawBuffer.length < 5000) continue
+    const buffer = await sharp(rawBuffer)
+      .rotate()
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer()
+    const filename = `${shoe.id}-${Date.now()}-${i}.jpg`
     await writeFile(path.join(uploadDir, filename), buffer)
     await prisma.shoePhoto.create({
       data: { shoeId: shoe.id, path: `/uploads/${filename}`, tipo: 'zapato', esPrincipal: i === 0 },
@@ -84,8 +101,13 @@ export async function POST(req: NextRequest) {
   // Guardar foto de etiqueta (si viene)
   const etiquetaFile = formData.get('etiqueta') as File | null
   if (etiquetaFile?.size) {
-    const buffer = Buffer.from(await etiquetaFile.arrayBuffer())
-    const filename = `${shoe.id}-etiqueta-${Date.now()}-${etiquetaFile.name.replace(/\s/g, '_')}`
+    const rawBuffer = Buffer.from(await etiquetaFile.arrayBuffer())
+    const buffer = await sharp(rawBuffer)
+      .rotate()
+      .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toBuffer()
+    const filename = `${shoe.id}-etiqueta-${Date.now()}.jpg`
     await writeFile(path.join(uploadDir, filename), buffer)
     await prisma.shoePhoto.create({
       data: { shoeId: shoe.id, path: `/uploads/${filename}`, tipo: 'etiqueta', esPrincipal: false },
