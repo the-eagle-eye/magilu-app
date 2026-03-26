@@ -174,11 +174,12 @@ export default function Sidebar() {
             >
               Tienda
             </Link>
-            <form action="/api/auth/signout" method="POST" className="mt-3 px-3">
-              <button className="text-xs text-white/30 hover:text-white/60 transition-colors tracking-widest uppercase">
-                Cerrar sesión
-              </button>
-            </form>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="mt-3 px-3 text-xs text-white/30 hover:text-white/60 transition-colors tracking-widest uppercase"
+            >
+              Cerrar sesión
+            </button>
           </div>
         )}
       </header>
