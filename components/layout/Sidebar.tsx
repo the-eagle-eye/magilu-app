@@ -9,7 +9,6 @@ const nav = [
   { href: '/', label: 'Dashboard' },
   { href: '/inventario', label: 'Inventario' },
   { href: '/catalogo', label: 'Catálogo PDF' },
-  { href: '/tienda', label: 'Tienda' },
 ]
 
 const mantenimiento = [
@@ -91,6 +90,23 @@ export default function Sidebar() {
                 </div>
               )}
             </div>
+
+            {/* Tienda */}
+            {(() => {
+              const active = path.startsWith('/tienda')
+              return (
+                <Link
+                  href="/tienda"
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    active
+                      ? 'bg-amber-400 text-black'
+                      : 'text-white/50 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  Tienda
+                </Link>
+              )
+            })()}
           </nav>
 
           {/* Right: sign out + mobile hamburger */}
@@ -147,6 +163,17 @@ export default function Sidebar() {
                 </Link>
               ))}
             </div>
+            <Link
+              href="/tienda"
+              onClick={() => setOpen(false)}
+              className={`flex items-center px-3 py-3 rounded-md text-sm font-medium transition-all mt-1 ${
+                path.startsWith('/tienda')
+                  ? 'bg-amber-400 text-black'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Tienda
+            </Link>
             <form action="/api/auth/signout" method="POST" className="mt-3 px-3">
               <button className="text-xs text-white/30 hover:text-white/60 transition-colors tracking-widest uppercase">
                 Cerrar sesión

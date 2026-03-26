@@ -6,6 +6,7 @@ import { CatalogoPDF } from '@/components/catalogo/CatalogoPDF'
 import path from 'path'
 import fs from 'fs'
 import { processShoeImage, processEtiquetaImage } from '@/lib/imageProcessor'
+import { getUploadDir } from '@/lib/upload-dir'
 
 const BRANDS_DIR = path.join(process.cwd(), 'brands')
 
@@ -19,13 +20,17 @@ function getBrandLogoPath(marca: string): string | null {
   return null
 }
 
-/** Resolves a photo path to a Buffer — tries local disk first, falls back to HTTP. */
+/** Resolves a photo path (e.g. "/uploads/foo.jpg") to a Buffer.
+ *  Tries the configured upload dir on disk first, then falls back to HTTP. */
 async function resolveImageSource(photoPath: string, baseUrl: string): Promise<Buffer | null> {
-  const localPath = path.join(process.cwd(), 'public', photoPath)
+  // photoPath is stored as "/uploads/<filename>" — strip the prefix to locate
+  // the actual file under UPLOAD_DIR (which may differ from public/uploads in prod)
+  const filename = photoPath.replace(/^\/uploads\//, '')
+  const localPath = path.join(getUploadDir(), filename)
   if (fs.existsSync(localPath)) {
     return fs.readFileSync(localPath)
   }
-  // File not on disk (e.g. ephemeral container in production) — fetch via HTTP
+  // File not on disk — fetch via the /uploads/[...path] serving route
   try {
     const res = await fetch(`${baseUrl}${photoPath}`)
     if (!res.ok) return null
