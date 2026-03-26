@@ -36,13 +36,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <h1 className="text-5xl font-black tracking-[8px] text-white">MAGILU</h1>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-[4px] sm:tracking-[8px] text-white">MAGILU</h1>
           <p className="text-amber-400 text-xs tracking-[4px] uppercase font-semibold mt-2">
             Calzado · Premium
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg p-8 shadow-2xl">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg p-5 sm:p-8 shadow-2xl">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Iniciar sesión</h2>
 
           {error && (

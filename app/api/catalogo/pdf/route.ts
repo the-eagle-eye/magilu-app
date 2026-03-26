@@ -19,6 +19,22 @@ function getBrandLogoPath(marca: string): string | null {
   return null
 }
 
+/** Resolves a photo path to a Buffer — tries local disk first, falls back to HTTP. */
+async function resolveImageSource(photoPath: string, baseUrl: string): Promise<Buffer | null> {
+  const localPath = path.join(process.cwd(), 'public', photoPath)
+  if (fs.existsSync(localPath)) {
+    return fs.readFileSync(localPath)
+  }
+  // File not on disk (e.g. ephemeral container in production) — fetch via HTTP
+  try {
+    const res = await fetch(`${baseUrl}${photoPath}`)
+    if (!res.ok) return null
+    return Buffer.from(await res.arrayBuffer())
+  } catch {
+    return null
+  }
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { ids, titulo, incluirPrecio, incluirTallas } = body as {
@@ -29,6 +45,7 @@ export async function POST(req: NextRequest) {
   }
 
   const whatsapp = process.env.WHATSAPP_NUMBER ?? ''
+  const baseUrl = new URL(req.url).origin
 
   if (!ids?.length) {
     return NextResponse.json({ error: 'No se especificaron zapatos' }, { status: 400 })
@@ -57,15 +74,18 @@ export async function POST(req: NextRequest) {
       .filter(f => f.tipo !== 'etiqueta')
       .sort((a, b) => (b.esPrincipal ? 1 : 0) - (a.esPrincipal ? 1 : 0))
 
-    const toPath = (p?: typeof productPhotos[0]) =>
-      p ? path.join(process.cwd(), 'public', p.path) : null
-
     const brandLogoPath = getBrandLogoPath(shoe.marca)
 
+    const [src0, src1, src2] = await Promise.all([
+      productPhotos[0] ? resolveImageSource(productPhotos[0].path, baseUrl) : Promise.resolve(null),
+      productPhotos[1] ? resolveImageSource(productPhotos[1].path, baseUrl) : Promise.resolve(null),
+      productPhotos[2] ? resolveImageSource(productPhotos[2].path, baseUrl) : Promise.resolve(null),
+    ])
+
     const [imageData, imageData2, imageData3, etiquetaData] = await Promise.all([
-      toPath(productPhotos[0]) ? processShoeImage(toPath(productPhotos[0])!, 714, 1140) : Promise.resolve(null),
-      toPath(productPhotos[1]) ? processShoeImage(toPath(productPhotos[1])!, 476, 570) : Promise.resolve(null),
-      toPath(productPhotos[2]) ? processShoeImage(toPath(productPhotos[2])!, 476, 570) : Promise.resolve(null),
+      src0 ? processShoeImage(src0, 714, 1140) : Promise.resolve(null),
+      src1 ? processShoeImage(src1, 476, 570) : Promise.resolve(null),
+      src2 ? processShoeImage(src2, 476, 570) : Promise.resolve(null),
       brandLogoPath ? processEtiquetaImage(brandLogoPath) : Promise.resolve(null),
     ])
 

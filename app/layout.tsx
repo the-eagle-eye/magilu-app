@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
 
@@ -14,10 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className="h-full">
       <body className={`${inter.className} h-full bg-stone-50`}>
-        <div className="flex flex-col min-h-screen">
-          <Sidebar />
-          <main className="flex-1">{children}</main>
-        </div>
+        <SessionProvider>
+          <div className="flex flex-col min-h-screen">
+            <Sidebar />
+            <main className="flex-1">{children}</main>
+          </div>
+        </SessionProvider>
       </body>
     </html>
   )

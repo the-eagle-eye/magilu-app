@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 const nav = [
   { href: '/', label: 'Dashboard' },
   { href: '/inventario', label: 'Inventario' },
   { href: '/catalogo', label: 'Catálogo PDF' },
+  { href: '/tienda', label: 'Tienda' },
 ]
 
 const mantenimiento = [
@@ -20,8 +21,10 @@ export default function Sidebar() {
   const path = usePathname()
   const [open, setOpen] = useState(false)
   const [mtOpen, setMtOpen] = useState(false)
+  const { data: session } = useSession()
 
-  if (path === '/login' || path === '/tienda') return null
+  if (path === '/login') return null
+  if (path === '/tienda' && !session) return null
 
   const isMt = path.startsWith('/mantenimiento')
 

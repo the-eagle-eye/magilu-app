@@ -45,7 +45,6 @@ export default function NuevoZapatoPage() {
     color: '',
     tipo: 'Zapatilla',
     genero: 'hombre',
-    precio: '',
     precioVenta: '',
     estado: 'disponible',
     notas: '',
@@ -149,7 +148,6 @@ export default function NuevoZapatoPage() {
     if (form.color) fd.append('color', form.color)
     fd.append('tipo', form.tipo)
     fd.append('genero', form.genero)
-    if (form.precio) fd.append('precio', form.precio)
     if (form.precioVenta) fd.append('precioVenta', form.precioVenta)
     fd.append('estado', form.estado)
     if (form.notas) fd.append('notas', form.notas)
@@ -171,7 +169,7 @@ export default function NuevoZapatoPage() {
   const label = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1'
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
       {saved && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-semibold">
           <span>✓</span>
@@ -327,6 +325,7 @@ export default function NuevoZapatoPage() {
               <input
                 required
                 type="number"
+                inputMode="decimal"
                 step="0.5"
                 placeholder="ej. 43"
                 value={form.eurSize}
@@ -339,6 +338,7 @@ export default function NuevoZapatoPage() {
               <label className={label}>Talla US</label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.5"
                 value={form.usSize}
                 onChange={e => setForm(f => ({ ...f, usSize: e.target.value }))}
@@ -351,6 +351,7 @@ export default function NuevoZapatoPage() {
               <label className={label}>Talla UK</label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.5"
                 value={form.ukSize}
                 onChange={e => setForm(f => ({ ...f, ukSize: e.target.value }))}
@@ -410,36 +411,18 @@ export default function NuevoZapatoPage() {
 
         {/* Precios */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <h2 className="text-sm font-bold text-gray-700 mb-1">Precios</h2>
-          <p className="text-xs text-gray-400 mb-4">Si ingresas ambos, el PDF mostrará el precio anterior tachado y el precio de venta destacado.</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={label}>Precio anterior / referencia (S/)</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={form.precio}
-                onChange={e => setForm(f => ({ ...f, precio: e.target.value }))}
-                className={field}
-              />
-            </div>
-            <div>
-              <label className={label}>Precio venta (S/)</label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={form.precioVenta}
-                onChange={e => setForm(f => ({ ...f, precioVenta: e.target.value }))}
-                className={field}
-              />
-              {form.precio && form.precioVenta && (
-                <p className="text-xs text-emerald-600 mt-1 font-semibold">
-                  Margen: S/ {(parseFloat(form.precioVenta) - parseFloat(form.precio)).toFixed(2)}
-                </p>
-              )}
-            </div>
+          <h2 className="text-sm font-bold text-gray-700 mb-4">Precio venta</h2>
+          <div>
+            <label className={label}>Precio venta (S/)</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              placeholder="0.00"
+              value={form.precioVenta}
+              onChange={e => setForm(f => ({ ...f, precioVenta: e.target.value }))}
+              className={field}
+            />
           </div>
         </div>
 

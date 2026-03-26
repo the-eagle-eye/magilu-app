@@ -60,7 +60,6 @@ export default function EditarZapatoPage() {
     color: '',
     tipo: '',
     genero: '',
-    precio: '',
     precioVenta: '',
     estado: '',
     notas: '',
@@ -80,7 +79,6 @@ export default function EditarZapatoPage() {
       color: data.color ?? '',
       tipo: data.tipo,
       genero: data.genero,
-      precio: data.precio != null ? String(data.precio) : '',
       precioVenta: data.precioVenta != null ? String(data.precioVenta) : '',
       estado: data.estado,
       notas: data.notas ?? '',
@@ -176,7 +174,6 @@ export default function EditarZapatoPage() {
         color: form.color || null,
         tipo: form.tipo,
         genero: form.genero,
-        precio: form.precio ? parseFloat(form.precio) : null,
         precioVenta: form.precioVenta ? parseFloat(form.precioVenta) : null,
         estado: form.estado,
         notas: form.notas || null,
@@ -205,7 +202,7 @@ export default function EditarZapatoPage() {
   if (!shoe) return <div className="p-6 text-center text-gray-400">Zapato no encontrado</div>
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
       {saved && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm font-semibold">
           <span>✓</span>
@@ -338,21 +335,21 @@ export default function EditarZapatoPage() {
 
             <div>
               <label className={labelCls}>Talla EUR *</label>
-              <input required type="number" step="0.5" value={form.eurSize}
+              <input required type="number" inputMode="decimal" step="0.5" value={form.eurSize}
                 onChange={e => handleEurChange(e.target.value)}
                 className={fieldCls} />
             </div>
 
             <div>
               <label className={labelCls}>Talla US</label>
-              <input type="number" step="0.5" value={form.usSize}
+              <input type="number" inputMode="decimal" step="0.5" value={form.usSize}
                 onChange={e => setForm(f => ({ ...f, usSize: e.target.value }))}
                 className={`${fieldCls} bg-gray-50`} />
             </div>
 
             <div>
               <label className={labelCls}>Talla UK</label>
-              <input type="number" step="0.5" value={form.ukSize}
+              <input type="number" inputMode="decimal" step="0.5" value={form.ukSize}
                 onChange={e => setForm(f => ({ ...f, ukSize: e.target.value }))}
                 className={`${fieldCls} bg-gray-50`} />
             </div>
@@ -399,26 +396,12 @@ export default function EditarZapatoPage() {
 
         {/* Precios */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
-          <h2 className="text-sm font-bold text-gray-700 mb-1">Precios</h2>
-          <p className="text-xs text-gray-400 mb-4">Si ingresas ambos, el PDF mostrará el precio anterior tachado y el precio de venta destacado.</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Precio anterior / referencia (S/)</label>
-              <input type="number" step="0.01" value={form.precio}
-                onChange={e => setForm(f => ({ ...f, precio: e.target.value }))}
-                className={fieldCls} placeholder="0.00" />
-            </div>
-            <div>
-              <label className={labelCls}>Precio venta (S/)</label>
-              <input type="number" step="0.01" value={form.precioVenta}
-                onChange={e => setForm(f => ({ ...f, precioVenta: e.target.value }))}
-                className={fieldCls} placeholder="0.00" />
-              {form.precio && form.precioVenta && (
-                <p className="text-xs text-emerald-600 mt-1 font-semibold">
-                  Margen: S/ {(parseFloat(form.precioVenta) - parseFloat(form.precio)).toFixed(2)}
-                </p>
-              )}
-            </div>
+          <h2 className="text-sm font-bold text-gray-700 mb-4">Precio venta</h2>
+          <div>
+            <label className={labelCls}>Precio venta (S/)</label>
+            <input type="number" inputMode="decimal" step="0.01" value={form.precioVenta}
+              onChange={e => setForm(f => ({ ...f, precioVenta: e.target.value }))}
+              className={fieldCls} placeholder="0.00" />
           </div>
         </div>
 
