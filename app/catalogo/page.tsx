@@ -46,8 +46,8 @@ export default function CatalogoPage() {
     if (soloDisponibles) params.set('estado', 'disponible')
     fetch(`/api/zapatos?${params}`)
       .then(r => r.json())
-      .then((data: Shoe[]) => {
-        const sizes = Array.from(new Set(data.map(s => s.eurSize))).sort((a, b) => a - b)
+      .then((data: { shoes: Shoe[] }) => {
+        const sizes = Array.from(new Set(data.shoes.map(s => s.eurSize))).sort((a, b) => a - b)
         setAllSizes(sizes)
       })
   }, [soloDisponibles])
@@ -59,9 +59,9 @@ export default function CatalogoPage() {
     if (eurSize) params.set('eurSize', eurSize)
     if (soloDisponibles) params.set('estado', 'disponible')
     const res = await fetch(`/api/zapatos?${params}`)
-    const data: Shoe[] = await res.json()
-    setShoes(data)
-    setSelectedIds(new Set(data.map(s => s.id)))
+    const data: { shoes: Shoe[] } = await res.json()
+    setShoes(data.shoes)
+    setSelectedIds(new Set(data.shoes.map(s => s.id)))
     setLoading(false)
   }, [genero, eurSize, soloDisponibles])
 
