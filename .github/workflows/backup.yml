@@ -1,0 +1,23 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Every day at 6am UTC (1am Peru time)
+  workflow_dispatch:       # Allow manual trigger from GitHub UI
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download database from production
+        run: |
+          curl -f -o magilu-$(date +%F).db \
+            -H "x-admin-secret: ${{ secrets.ADMIN_SECRET }}" \
+            ${{ secrets.APP_URL }}/api/admin/backup-db
+
+      - name: Upload as artifact (kept 90 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_number }}-${{ github.run_id }}
+          path: magilu-*.db
+          retention-days: 90
