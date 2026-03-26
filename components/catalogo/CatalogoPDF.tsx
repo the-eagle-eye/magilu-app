@@ -233,8 +233,17 @@ const S = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
     padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  imgSmallB: { width: IMG_LEFT_W, height: IMG_GRID_H / 2, backgroundColor: GRAY_LT, padding: 10 },
+  imgSmallB: {
+    width: IMG_LEFT_W,
+    height: IMG_GRID_H / 2,
+    backgroundColor: GRAY_LT,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   imgRight: {
     width: IMG_RIGHT_W,
     height: IMG_GRID_H,
@@ -243,7 +252,7 @@ const S = StyleSheet.create({
     borderLeftColor: BORDER,
   },
   imgFill: { width: '100%', height: '100%', objectFit: 'cover' },
-  imgContain: { width: '100%', height: '100%', objectFit: 'contain' },
+  imgContain: { width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' },
 
   prodFooter: {
     height: PROD_FOOTER_H,

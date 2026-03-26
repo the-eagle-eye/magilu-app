@@ -89,8 +89,8 @@ export async function POST(req: NextRequest) {
 
     const [imageData, imageData2, imageData3, etiquetaData] = await Promise.all([
       src0 ? processShoeImage(src0, 714, 1140) : Promise.resolve(null),
-      src1 ? processShoeImage(src1, 476, 570) : Promise.resolve(null),
-      src2 ? processShoeImage(src2, 476, 570) : Promise.resolve(null),
+      src1 ? processShoeImage(src1, 476, 570, 'inside') : Promise.resolve(null),
+      src2 ? processShoeImage(src2, 476, 570, 'inside') : Promise.resolve(null),
       brandLogoPath ? processEtiquetaImage(brandLogoPath) : Promise.resolve(null),
     ])
 

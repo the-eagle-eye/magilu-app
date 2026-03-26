@@ -8,6 +8,7 @@ export async function processShoeImage(
   source: string | Buffer,
   width = 700,
   height = 700,
+  fit: 'cover' | 'inside' | 'contain' = 'cover',
 ): Promise<string | null> {
   try {
     if (typeof source === 'string') {
@@ -20,7 +21,7 @@ export async function processShoeImage(
 
     const buffer = await sharp(source)
       .rotate()  // auto-rotate based on EXIF orientation
-      .resize(width, height, { fit: 'cover' })
+      .resize(width, height, { fit, withoutEnlargement: true })
       .jpeg({ quality: 90, mozjpeg: true })
       .toBuffer()
     return `data:image/jpeg;base64,${buffer.toString('base64')}`
