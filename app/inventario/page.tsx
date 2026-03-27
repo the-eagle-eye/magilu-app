@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -27,7 +27,7 @@ const ESTADOS = ['todos', 'disponible', 'reservado', 'vendido']
 const GENEROS = ['todos', 'hombre', 'mujer']
 const PAGE_SIZE = 40
 
-export default function InventarioPage() {
+function InventarioPage() {
   const searchParams = useSearchParams()
   const [shoes, setShoes] = useState<Shoe[]>([])
   const [loading, setLoading] = useState(true)
@@ -304,5 +304,13 @@ export default function InventarioPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function InventarioPageWrapper() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-gray-400">Cargando...</div>}>
+      <InventarioPage />
+    </Suspense>
   )
 }
