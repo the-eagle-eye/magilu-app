@@ -100,9 +100,10 @@ export default async function DashboardPage() {
             {stats.byTalla.map(row => {
               const us = getConvertedSizes(row.eurSize, 'hombre')?.us
               return (
-                <div
+                <Link
                   key={row.eurSize}
-                  className="relative bg-amber-50 border border-amber-200 rounded-lg px-3 pt-4 pb-2 text-center min-w-[60px]"
+                  href={`/inventario?eurSize=${row.eurSize}`}
+                  className="relative bg-amber-50 border border-amber-200 rounded-lg px-3 pt-4 pb-2 text-center min-w-[60px] hover:bg-amber-100 hover:border-amber-400 hover:shadow-sm transition-all"
                 >
                   <span className="absolute top-1.5 right-1.5 bg-amber-400 text-black text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                     {row._count.id}
@@ -110,7 +111,7 @@ export default async function DashboardPage() {
                   <p className="text-[10px] font-semibold text-amber-600 leading-none mb-0.5">EUR</p>
                   <p className="text-lg font-bold text-gray-900 leading-tight">{row.eurSize}</p>
                   {us && <p className="text-xs text-gray-400 mt-0.5">US {us}</p>}
-                </div>
+                </Link>
               )
             })}
           </div>

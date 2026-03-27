@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -27,6 +28,7 @@ const GENEROS = ['todos', 'hombre', 'mujer']
 const PAGE_SIZE = 40
 
 export default function InventarioPage() {
+  const searchParams = useSearchParams()
   const [shoes, setShoes] = useState<Shoe[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -35,7 +37,7 @@ export default function InventarioPage() {
   const [q, setQ] = useState('')
   const [estado, setEstado] = useState('disponible')
   const [genero, setGenero] = useState('todos')
-  const [talla, setTalla] = useState('')
+  const [talla, setTalla] = useState(() => searchParams.get('eurSize') ?? '')
   const [tallas, setTallas] = useState<number[]>([])
   const [offset, setOffset] = useState(0)
   const [total, setTotal] = useState(0)
@@ -199,6 +201,14 @@ export default function InventarioPage() {
             </option>
           ))}
         </select>
+        {(inputQ || estado !== 'disponible' || genero !== 'todos' || talla) && (
+          <button
+            onClick={() => { setInputQ(''); setEstado('disponible'); setGenero('todos'); setTalla('') }}
+            className="px-3 py-2 rounded-md text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 border border-red-100 transition-colors"
+          >
+            ✕ Limpiar filtros
+          </button>
+        )}
       </div>
 
       {/* Grid */}

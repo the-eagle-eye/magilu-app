@@ -98,12 +98,21 @@ export default function CatalogoPage() {
       })
       if (!res.ok) throw new Error('Error al generar PDF')
       const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${titulo.replace(/\s+/g, '_')}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
+      const filename = `${titulo.replace(/\s+/g, '_')}.pdf`
+      const file = new File([blob], filename, { type: 'application/pdf' })
+
+      // Use native share sheet on mobile (shows WhatsApp, iMessage, etc.)
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: titulo })
+      } else {
+        // Fallback: direct download on desktop
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+      }
     } catch (err) {
       alert('Error al generar el catálogo')
     } finally {
