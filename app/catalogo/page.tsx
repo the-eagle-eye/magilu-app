@@ -40,16 +40,13 @@ export default function CatalogoPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // Fetch all sizes once (unaffected by eurSize filter)
+  // Fetch all distinct sizes (unaffected by eurSize filter)
   useEffect(() => {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams({ tallas: '1' })
     if (soloDisponibles) params.set('estado', 'disponible')
     fetch(`/api/zapatos?${params}`)
       .then(r => r.json())
-      .then((data: { shoes: Shoe[] }) => {
-        const sizes = Array.from(new Set(data.shoes.map(s => s.eurSize))).sort((a, b) => a - b)
-        setAllSizes(sizes)
-      })
+      .then((sizes: number[]) => setAllSizes(sizes))
   }, [soloDisponibles])
 
   const fetchShoes = useCallback(async () => {

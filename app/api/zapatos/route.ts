@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
       select: { eurSize: true },
       distinct: ['eurSize'],
       orderBy: { eurSize: 'asc' },
+      ...(estado && { where: { estado } }),
     })
     return NextResponse.json(rows.map(r => r.eurSize))
   }
