@@ -35,7 +35,7 @@ export default function InventarioContent() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [inputQ, setInputQ] = useState('')
   const [q, setQ] = useState('')
-  const [estado, setEstado] = useState('disponible')
+  const [estado, setEstado] = useState(() => searchParams.get('estado') ?? 'disponible')
   const [genero, setGenero] = useState('todos')
   const [talla, setTalla] = useState(() => searchParams.get('eurSize') ?? '')
   const [tallas, setTallas] = useState<number[]>([])

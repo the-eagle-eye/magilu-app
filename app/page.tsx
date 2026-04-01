@@ -25,10 +25,10 @@ export default async function DashboardPage() {
   const stats = await getStats()
 
   const statCards = [
-    { label: 'Total pares', value: stats.total, color: 'text-gray-900', bg: 'bg-gray-50' },
-    { label: 'Disponibles', value: stats.disponible, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-    { label: 'Reservados', value: stats.reservado, color: 'text-amber-700', bg: 'bg-amber-50' },
-    { label: 'Vendidos', value: stats.vendido, color: 'text-red-600', bg: 'bg-red-50' },
+    { label: 'Total pares', value: stats.total, color: 'text-gray-900', bg: 'bg-gray-50', href: '/inventario?estado=todos' },
+    { label: 'Disponibles', value: stats.disponible, color: 'text-emerald-700', bg: 'bg-emerald-50', href: '/inventario?estado=disponible' },
+    { label: 'Reservados', value: stats.reservado, color: 'text-amber-700', bg: 'bg-amber-50', href: '/inventario?estado=reservado' },
+    { label: 'Vendidos', value: stats.vendido, color: 'text-red-600', bg: 'bg-red-50', href: '/inventario?estado=vendido' },
   ]
 
   return (
@@ -42,10 +42,10 @@ export default async function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map(card => (
-          <div key={card.label} className={`${card.bg} rounded-xl p-5 border border-gray-100`}>
+          <Link key={card.label} href={card.href} className={`${card.bg} rounded-xl p-5 border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all`}>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{card.label}</p>
             <p className={`text-3xl font-bold mt-1 ${card.color}`}>{card.value}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
