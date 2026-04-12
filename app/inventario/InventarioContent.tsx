@@ -24,7 +24,7 @@ type Shoe = {
 }
 
 const ESTADOS = ['todos', 'disponible', 'reservado', 'vendido']
-const GENEROS = ['todos', 'hombre', 'mujer']
+const GENEROS = ['todos', 'hombre', 'mujer', 'niño']
 const PAGE_SIZE = 40
 
 export default function InventarioContent() {

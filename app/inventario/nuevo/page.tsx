@@ -305,7 +305,7 @@ export default function NuevoZapatoPage() {
             <div>
               <label className={label}>Género *</label>
               <div className="flex gap-2">
-                {['hombre', 'mujer'].map(g => (
+                {['hombre', 'mujer', 'niño'].map(g => (
                   <button
                     key={g}
                     type="button"

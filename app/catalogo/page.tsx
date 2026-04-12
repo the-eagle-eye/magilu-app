@@ -185,7 +185,7 @@ export default function CatalogoPage() {
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Género</label>
                 <div className="flex gap-1">
-                  {['todos', 'hombre', 'mujer'].map(g => (
+                  {['todos', 'hombre', 'mujer', 'niño'].map(g => (
                     <button key={g} type="button" onClick={() => setGenero(g)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
                         genero === g ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

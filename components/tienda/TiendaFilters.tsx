@@ -7,7 +7,7 @@ type Props = {
   sizes: number[]
 }
 
-const GENEROS = ['todos', 'hombre', 'mujer']
+const GENEROS = ['todos', 'hombre', 'mujer', 'niño']
 
 export default function TiendaFilters({ sizes }: Props) {
   const router = useRouter()

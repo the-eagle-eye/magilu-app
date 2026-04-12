@@ -321,7 +321,7 @@ export default function EditarZapatoPage() {
             <div>
               <label className={labelCls}>Género</label>
               <div className="flex gap-2">
-                {['hombre', 'mujer'].map(g => (
+                {['hombre', 'mujer', 'niño'].map(g => (
                   <button key={g} type="button"
                     onClick={() => setForm(f => ({ ...f, genero: g }))}
                     className={`flex-1 py-2 rounded-lg text-sm font-semibold capitalize transition-colors ${
