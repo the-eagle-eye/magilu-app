@@ -12,7 +12,7 @@ async function getStats() {
     prisma.shoe.count({ where: { estado: 'vendido' } }),
     prisma.shoe.groupBy({ by: ['marca'], _count: { id: true }, orderBy: { _count: { id: 'desc' } } }),
     prisma.shoe.groupBy({
-      by: ['eurSize'],
+      by: ['eurSize', 'genero'],
       where: { estado: 'disponible' },
       _count: { id: true },
       orderBy: { eurSize: 'asc' },
@@ -96,25 +96,34 @@ export default async function DashboardPage() {
         {/* Disponibles por talla */}
         <div className="bg-white rounded-xl border border-gray-100 p-5">
           <h2 className="text-sm font-bold text-gray-700 mb-4">Disponibles por talla</h2>
-          <div className="flex flex-wrap gap-2">
-            {stats.byTalla.map(row => {
-              const us = getConvertedSizes(row.eurSize, 'hombre')?.us
-              return (
-                <Link
-                  key={row.eurSize}
-                  href={`/inventario?eurSize=${row.eurSize}`}
-                  className="relative bg-amber-50 border border-amber-200 rounded-lg px-3 pt-4 pb-2 text-center min-w-[60px] hover:bg-amber-100 hover:border-amber-400 hover:shadow-sm transition-all"
-                >
-                  <span className="absolute top-1.5 right-1.5 bg-amber-400 text-black text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                    {row._count.id}
-                  </span>
-                  <p className="text-[10px] font-semibold text-amber-600 leading-none mb-0.5">EUR</p>
-                  <p className="text-lg font-bold text-gray-900 leading-tight">{row.eurSize}</p>
-                  {us && <p className="text-xs text-gray-400 mt-0.5">US {us}</p>}
-                </Link>
-              )
-            })}
-          </div>
+          {(['hombre', 'mujer', 'niño', 'niña'] as const).map(genero => {
+            const tallas = stats.byTalla.filter(row => row.genero === genero)
+            if (tallas.length === 0) return null
+            return (
+              <div key={genero} className="mb-4 last:mb-0">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 capitalize">{genero}</p>
+                <div className="flex flex-wrap gap-2">
+                  {tallas.map(row => {
+                    const us = getConvertedSizes(row.eurSize, genero)?.us
+                    return (
+                      <Link
+                        key={row.eurSize}
+                        href={`/inventario?eurSize=${row.eurSize}&genero=${genero}`}
+                        className="relative bg-amber-50 border border-amber-200 rounded-lg px-3 pt-4 pb-2 text-center min-w-[60px] hover:bg-amber-100 hover:border-amber-400 hover:shadow-sm transition-all"
+                      >
+                        <span className="absolute top-1.5 right-1.5 bg-amber-400 text-black text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                          {row._count.id}
+                        </span>
+                        <p className="text-[10px] font-semibold text-amber-600 leading-none mb-0.5">EUR</p>
+                        <p className="text-lg font-bold text-gray-900 leading-tight">{row.eurSize}</p>
+                        {us && <p className="text-xs text-gray-400 mt-0.5">US {us}</p>}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
           {stats.byTalla.length === 0 && (
             <p className="text-sm text-gray-400">No hay pares disponibles</p>
           )}
