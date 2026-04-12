@@ -1,4 +1,4 @@
-// EUR → US / UK para hombre, mujer y niño
+// EUR → US / UK para hombre, mujer, niño y niña
 const menSizes: Record<number, { us: number; uk: number }> = {
   39: { us: 6, uk: 5.5 },
   39.5: { us: 6.5, uk: 6 },
@@ -51,7 +51,7 @@ const kidsSizes: Record<number, { us: number; uk: number }> = {
 }
 
 export function getConvertedSizes(eur: number, genero: string) {
-  const table = genero === 'mujer' ? womenSizes : genero === 'niño' ? kidsSizes : menSizes
+  const table = genero === 'mujer' ? womenSizes : (genero === 'niño' || genero === 'niña') ? kidsSizes : menSizes
   return table[eur] ?? null
 }
 
